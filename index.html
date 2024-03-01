@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detecção de Tecla</title>
+</head>
+<style>
+/* #cadeado,
+#fechadura,
+#Lockpick {
+   width: 200px;
+   height: 200px;
+} */
+#cadeado{
+position: absolute;
+}
+#fechadura{
+position: absolute;
+top: 63px;
+left: 14px;
+transition: transform 0.2s ease;
+}
+#Lockpick{
+position: absolute;
+top: 75px;
+left: 14px;
+transition: transform 0.2s ease;
+}
+#slider-container {
+  position: absolute;
+top: 63px;
+      width: 2000px;
+      height: 200px;
+      background-color: #ccc;
+      position: relative;
+    }
+
+    #slider-handle {
+      width: 50px;
+      height: 200px;
+      background-color: #007bff;
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      cursor: pointer;
+    }
+    #instrução{
+      /* background-color: blue; */
+      color: black;
+      top: 288px;
+      left: 14px;
+      width: 2000px;
+      height: 200px;
+      font-size: 100px;
+     
+      position: absolute;
+    }
+    #GateOpen{
+      top: 50px;
+      left: 14px;
+      width: 2300px;
+      height: 2000px;
+   
+      position: absolute;
+    }
+    #telainicial{
+      top: 288px;
+      left: 14px;
+      width: 2000px;
+      height: 2000px;
+      font-size: 100px;
+      position: absolute;
+      display: flex;
+      background-image: url('sprites/skyrim.JFIF');
+      background-size: cover;
+     flex-wrap: wrap;
+    flex-direction: row;
+    align-content: center;
+    justify-content: center; 
+
+    }
+    .button{
+      width: 400px;
+      height: 300px;
+      font-size: 100px;
+    }
+
+</style>
+<body>
+
+
+<img id="cadeado" src="sprites/cadeado.png" alt="">  
+<img id="fechadura" src="sprites/fechadura.png" alt="">  
+<img id="Lockpick" src="sprites/Lockpick.png" alt="">
+
+<div id="slider-container">
+  <div id="slider-handle"></div>
+</div>
+<div id="instrução">
+  Use abarra a cima para mover a gansula para o melhor local e segure D para mover a fechadura <br>
+</div>
+
+<img src="sprites/GateOpen.webp" style="visibility: hidden;" id="GateOpen" alt="">
+<div id="telainicial">
+
+<button class="button" id="começar" onclick="começar(margemEasy)">Nivel Facil</button>
+  
+<button class="button" id="começar" onclick="começar(margemMediun)">Nivel Médio</button>
+
+<button class="button" id="começar" onclick="começar(margemHard)">Nivel Dificil</button>
+</div>
+
+
+<script>
+
+let segredo = 100; //max 245 min 120 easy, 295 max e 70 min hard
+let margemHard = [0,5,10,20]
+let margemMediun = [0,20,40,80]
+let margemEasy = [0,40,80,160] //max 200, min 160
+let dificuldade = margemHard
+
+//aqui é o lookpik
+let currentValue = 177; // Valor inicial
+
+  function começar(margem){
+
+    
+    document.getElementById("telainicial").style.visibility = "hidden";
+    dificuldade = margem;
+
+    //segredo = Math.floor(Math.random() * (200 - 160 + 1)) + 160;
+    segredo = Math.floor(Math.random() * (360 - dificuldade[3] + 1)) + dificuldade[3];
+   
+    console.log(segredo)
+
+  }
+
+  //coloar um valor entre 1 e 360
+
+
+const sliderContainer = document.getElementById("slider-container");
+const sliderHandle = document.getElementById("slider-handle");
+
+// Função para atualizar a posição do controle deslizante com base no valor atual
+function updateSliderPosition() {
+  const maxPosition = sliderContainer.offsetWidth - sliderHandle.offsetWidth;
+  const newPosition = (currentValue / 365) * maxPosition;
+  sliderHandle.style.left = newPosition + "px";
+  console.log(currentValue)
+  document.getElementById("Lockpick").style.transform = "rotate(" + currentValue + "deg)";
+}
+
+// Atualiza a posição inicial
+updateSliderPosition();
+
+// Adiciona um ouvinte de evento para mover o controle deslizante
+sliderHandle.addEventListener("mousedown", function(event) {
+  const startX = event.clientX;
+  const initialPosition = parseFloat(window.getComputedStyle(sliderHandle).left);
+
+  function handleMouseMove(moveEvent) {
+    const deltaX = moveEvent.clientX - startX;
+    let newPosition = initialPosition + deltaX;
+
+    // Limita a posição dentro dos limites do container
+    newPosition = Math.max(0, Math.min(newPosition, sliderContainer.offsetWidth - sliderHandle.offsetWidth));
+
+    // Calcula o novo valor com base na posição
+    currentValue = Math.round((newPosition / (sliderContainer.offsetWidth - sliderHandle.offsetWidth)) * 365);
+
+    // Atualiza a posição do controle deslizante
+    updateSliderPosition();
+  }
+
+  function handleMouseUp() {
+    // Remove os ouvintes de eventos quando o botão do mouse é liberado
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  }
+
+  // Adiciona ouvintes de eventos enquanto o botão do mouse estiver pressionado
+  document.addEventListener("mousemove", handleMouseMove);
+  document.addEventListener("mouseup", handleMouseUp);
+});
+
+// aqui é a engrenangem
+//-------------------------------------------
+
+  let timerValue = 0;
+  let pressTimer;
+
+  function abriu3() {
+    pressTimer = setInterval(function() {
+      timerValue += 10; 
+      console.log(timerValue); 
+      document.getElementById("fechadura").style.transform = "rotate(" + timerValue + "deg)";
+      document.getElementById("Lockpick").style.transform = "rotate(" + (timerValue+currentValue) + "deg)";
+
+      if (timerValue >= 180) {
+        stopTimer();
+        console.log("conseguiu");
+        document.getElementById("GateOpen").style.visibility = "visible";
+        setTimeout(function() {
+          document.getElementById("GateOpen").style.visibility = "hidden";
+          document.getElementById("telainicial").style.visibility = "visible";
+      }, 1800);
+
+      }
+    }, 100);
+  }
+
+  function abriu2() {
+    pressTimer = setInterval(function() {
+      timerValue += 10; 
+      console.log(timerValue); 
+      document.getElementById("fechadura").style.transform = "rotate(" + timerValue + "deg)";
+      document.getElementById("Lockpick").style.transform = "rotate(" + (timerValue+currentValue) + "deg)";
+
+      if (timerValue >= 120) {
+        stopTimer();
+       
+      }
+    }, 100);
+  }
+
+  function abriu1() {
+    pressTimer = setInterval(function() {
+      timerValue += 10; 
+      console.log(timerValue); 
+      document.getElementById("fechadura").style.transform = "rotate(" + timerValue + "deg)";
+      document.getElementById("Lockpick").style.transform = "rotate(" + (timerValue+currentValue) + "deg)";
+
+      if (timerValue >= 60) {
+        stopTimer();
+       
+      }
+    }, 100);
+  }
+
+
+  function abriu0() {
+    pressTimer = setInterval(function() {
+      timerValue += 10; 
+      console.log(timerValue); 
+      document.getElementById("fechadura").style.transform = "rotate(" + timerValue + "deg)";
+      document.getElementById("Lockpick").style.transform = "rotate(" + (timerValue+currentValue) + "deg)";
+
+      if (timerValue >= 20) {
+        stopTimer();
+        console.log("conseguiu");
+      }
+    }, 100);
+  }
+
+  function stopTimer() {
+    clearInterval(pressTimer);
+  console.clear(); // limpa o console ao soltar a tecla
+  document.getElementById("fechadura").style.transform = "rotate(" + timerValue - "deg)";
+  document.getElementById("Lockpick").style.transform = "rotate(" + (timerValue+currentValue) + "deg)";
+
+  if(pressTimer >= 0){
+    pressTimer = setTimeout(function() {
+    reverse();
+      }, 100);
+
+  }
+ 
+}
+
+
+function reverse() {
+  let i = timerValue;
+
+  function rotateStep() {
+    if (i > 0) {
+      timerValue -= 10;
+      console.log(timerValue);
+      document.getElementById("fechadura").style.transform = "rotate(" + timerValue + "deg)";
+      document.getElementById("Lockpick").style.transform = "rotate(" + (timerValue+currentValue) + "deg)";
+
+      setTimeout(function() {
+        rotateStep();
+      }, 100); //mudei pra 100 
+      i -= 10;
+      if(timerValue <= 0){
+        i = 0
+      timerValue = 0;
+      }
+
+    } else {
+      i = 0
+      timerValue = 0;
+      document.getElementById("fechadura").style.transform = "rotate(" + timerValue + "deg)";
+      document.getElementById("Lockpick").style.transform = "rotate(" + (timerValue+currentValue) + "deg)";
+      console.log("parou");
+      
+    }
+  }
+
+  rotateStep(); 
+}
+
+
+
+
+  
+  document.addEventListener('keydown', function(event) {
+    if ((event.key === 'd' || event.key === 'D') && !pressTimer) {
+
+      pressTimer = setTimeout(function() {
+        if(currentValue>=segredo-dificuldade[1] && currentValue<=segredo+dificuldade[1]){
+          abriu3();
+        }
+       else if(currentValue>=segredo-dificuldade[2] && currentValue<=segredo+dificuldade[2]){
+          abriu2();
+        }
+       else if(currentValue>=segredo-dificuldade[3] && currentValue<=segredo+dificuldade[3]){
+          abriu1();
+        }
+        else{
+          abriu0();
+        }
+        
+      }, 100);
+
+    }
+  });
+
+  document.addEventListener('keyup', function(event) {
+    stopTimer();
+    pressTimer = null; 
+  });
+</script>
+
+</body>
+</html>
